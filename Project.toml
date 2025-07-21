@@ -1,0 +1,4 @@
+name = "PointInPolygon"
+uuid = "8eea679b-44b3-4297-b8a9-ca8d519112df"
+authors = ["Spiffmeister <robospiff@gmail.com>"]
+version = "0.1.0"
