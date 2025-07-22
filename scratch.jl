@@ -24,9 +24,6 @@ function toroidal_surface_point(θ,ζ,R₀=5.0,a=1.0)
 end
 
 
-
-
-
 function triangulate_toroidal_surface(θₙ,ζₙ)
     Δθ = π/Float64(θₙ)
     Δζ = π/Float64(ζₙ)
@@ -88,51 +85,61 @@ cross(x,y) = (
 crossm(x,y,z) = (x-z, y-z)
 
 
-vertex_sign(sign_x,sign_y) = iszero(sign_x) ? sign_y : sign_x
-vertex_sign(sign_x,sign_y,sign_z) = vertex_sign(vertex_sign(sign_x,sign_y),sign_z)
+vertex_sign(x,y) = iszero(x) ? sign(y) : sign(x)
+vertex_sign(x,y,z) = vertex_sign(vertex_sign(x,y),z)
+vertex_sign(x) = vertex_sign(x...)
 
+edge_sign(v₁,v₂)  = (v₁[2]*v₂[1]  - v₁[1]*v₂[2], v₁[3]*v₂[1] - v₁[1]*v₂[3], v₁[3]*v₂[2] - v₁[2]*v₂[3])
 
-
+triangle_area(v₁,v₂,v₃) = (
+    (v₁[1]*v₂[2] - v₁[2]*v₂[1]) * v₃[3] + 
+    (v₂[1]*v₃[2] - v₂[2]*v₃[1]) * v₁[2] + 
+    (v₃[1]*v₁[2] - v₃[2]*v₂[1]) * v₂[2]
+    )
 
 """
 Compute the winding number on a single triangle
 """
-function winding_number(vertex1,vertex2,vertex3,point)
+function winding_number(v1,v2,v3,point)
 
-    # vertex1 - point
-    # vertex2 - point
-    # vertex3 - point
+    v1p = v1 - point
+    v2p = v2 - point
+    v3p = v3 - point
 
-    # Check the sign of the 
-    #   sign(v - pt)
-    # if positive 
-    signed_vertex1 = vertex_sign((vertex1 - point)...)
-    signed_vertex2 = vertex_sign((vertex2 - point)...)
-    signed_vertex3 = vertex_sign((vertex3 - point)...)
+    v1_sign = vertex_sign(v1p)
+    v2_sign = vertex_sign(v2p)
+    v3_sign = vertex_sign(v3p)
 
-
-    check_sign = vertex_sign(signed_vertex1, signed_vertex2, signed_vertex3)
+    check_faces = 0
     
-    
-    sign.(cross(vertex1,point))
+    if v1_sign != v2_sign
+        check_faces += vertex_sign(edge_sign(v1p,v2p))
+    end
+    if v2_sign != v3_sign
+        check_faces += vertex_sign(edge_sign(v2p,v3p))
+    end
+    if v3_sign != v1_sign
+        check_faces += vertex_sign(edge_sign(v3p,v1p))
+    end
 
-
-    
+    winding_number_contribution = 0
+    if !iszero(check_faces)
+        winding_number_contribution += sign(triangle_area(v1p,v2p,v3p))
+    end
+    return winding_number_contribution
 
 end
-
-
-
-
-
-
-function winding_number(m::Mesh{TT,NVERTS,NTRIS}) where {TT,NVERTS,NTRIS} end
-
-
-
-function winding_number(m::Mesh{TT},point::NTuple{3,TT}) where TT
-    rx, ry, rz = m.vertices - point
+function winding_number(mesh::Mesh{TT,NVERTS,NTRIS},point::AbstractArray{TT}) where {TT,NVERTS,NTRIS}
+    wₙ = 0
+    for connection in mesh.connections
+        wₙ += winding_number(mesh.vertices[connection[1]],
+            mesh.vertices[connection[2]],
+            mesh.vertices[connection[3]],
+            point)
+    end
+    return fld(wₙ,2)
 end
+winding_number(mesh::Mesh,points::NTuple) = map(pt -> winding_number(mesh,pt), points)
 
 
 
@@ -175,7 +182,7 @@ function solid_angle(mesh::Mesh{TT,NVERTS,NTRIS},pt::AbstractArray{TT}) where {T
     end
     return Ω
 end
-solid_angle_test(mesh::Mesh,points::NTuple) = map(pt -> solid_angle(mesh,pt), points)
+solid_angle(mesh::Mesh,points::NTuple) = map(pt -> solid_angle(mesh,pt), points)
 
 
 
@@ -193,7 +200,7 @@ m = Mesh{Float64}(verts,conns);
 d = rand(3);
 
 
-@benchmark solid_angle($m,$d)
+# @benchmark solid_angle($m,$d)
 
 
 
@@ -219,13 +226,20 @@ function inside_torus(X,R₀=5.0,a=1.0)
 end
 
 exact_inside_outside = map(inside_torus, test_points);
-computed_inside_outside = solid_angle_test(m,test_points);
-
-@benchmark solid_angle_test($m,$test_points)
 
 
+inout = solid_angle(m,test_points) .< 0.5;
+
+inout_winding = winding_number(m,test_points) .< 0.5;
 
 
-inout = solid_angle_test(m,test_points)
+winding_number(m,[5.5,0.0,0.0])
+
+winding_number(m,test_points[1])
+
+
+winding_number(m,test_points)
+# @benchmark solid_angle($m,$test_points)
+# @benchmark winding_number($m,$test_points)
 
 
