@@ -86,6 +86,9 @@ inout_winding = winding_number(m,test_points)
 
 
 
-# @benchmark solid_angle_test($m,$test_points)
+# @benchmark solid_angle($m,$test_points)
 # @benchmark winding_number($m,$test_points)
 
+
+
+# @profview solid_angle(m,test_points)

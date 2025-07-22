@@ -15,7 +15,7 @@ export winding_number
 
 struct Mesh{TT,NVERTS,NTRIS}
     vertices :: NTuple{NVERTS,SVector{3,TT}}
-    connections :: NTuple{NTRIS,NTuple{3,Integer}}
+    connections :: NTuple{NTRIS,NTuple{3,Int}}
 
     Mesh{TT}(vertices,connections) where TT = new{TT,length(vertices),length(connections)}(vertices,connections)
 end
