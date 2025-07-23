@@ -7,7 +7,7 @@ Julia implementation of two methods for detecting if a point lies inside a trian
 
 
 ```julia
-] add https://codeberg.org/Spiffmeister/PointInPolygon.git
+] add https://github.com/Spiffmeister/PointInPolygon.git
 ```
 
 ```julia
