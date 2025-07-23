@@ -1,12 +1,14 @@
 name = "PointInPolygon"
 uuid = "8eea679b-44b3-4297-b8a9-ca8d519112df"
-authors = ["Spiffmeister <robospiff@gmail.com>"]
 version = "0.1.0"
+authors = ["Spiffmeister <robospiff@gmail.com>"]
 
 [deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
+BenchmarkTools = "1.6.0"
 LinearAlgebra = "1.11.0"
 StaticArrays = "1.9.14"
